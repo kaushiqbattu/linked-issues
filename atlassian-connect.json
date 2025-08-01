@@ -11,17 +11,21 @@
       {
         "key": "linked-issues-match-jql",
         "name": {
-          "value": "All linked issues match JQL"
+          "value": "Any linked issue matches JQL"
         },
         "description": {
-          "value": "Blocks the transition unless every linked issue satisfies the JQL you supply."
+          "value": "Blocks the transition unless at least one linked issue satisfies the JQL you supply."
         },
         "url": "/validate", 
         "function": "validate-handler",
         "configurationUrl": "/create.html",
         "view": {
           "url": "/view.html"
-        }
+        },
+        "errorMessage": {
+          "value": "No linked issues match the configured JQL query."
+        },
+        "expression": "true"
       }
     ]
   }
