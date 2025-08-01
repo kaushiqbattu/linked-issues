@@ -9,6 +9,7 @@
     .success { background: #e8f5e8; color: #2e7d32; }
     .error { background: #ffebee; color: #c62828; }
     .info { background: #e3f2fd; color: #1976d2; }
+    .warning { background: #fff3e0; color: #f57c00; }
   </style>
 </head>
 <body>
@@ -30,6 +31,7 @@
     // Check if AP is available
     if (typeof AP === 'undefined') {
       addResult('❌ AP (Atlassian Connect) not available', 'error');
+      addResult('This page must be accessed from within Jira', 'warning');
     } else {
       addResult('✅ AP (Atlassian Connect) is available', 'success');
       
@@ -37,24 +39,56 @@
       AP.require(['jira'], function(jira) {
         addResult('✅ Jira API loaded successfully', 'success');
         
-        // Test workflow configuration
-        try {
-          jira.getWorkflowConfiguration(function(cfg) {
-            addResult(`✅ Workflow configuration loaded: ${JSON.stringify(cfg)}`, 'success');
-          });
-        } catch (error) {
-          addResult(`❌ Error loading workflow configuration: ${error.message}`, 'error');
+        // Test available functions
+        const availableFunctions = [];
+        const requiredFunctions = [
+          'getWorkflowConfiguration',
+          'getCurrentIssue',
+          'WorkflowConfiguration'
+        ];
+        
+        requiredFunctions.forEach(func => {
+          if (typeof jira[func] === 'function') {
+            availableFunctions.push(func);
+            addResult(`✅ ${func} is available`, 'success');
+          } else {
+            addResult(`❌ ${func} is not available`, 'error');
+          }
+        });
+        
+        // Test WorkflowConfiguration object
+        if (jira.WorkflowConfiguration) {
+          addResult('✅ WorkflowConfiguration object is available', 'success');
+          
+          // Test onSave function
+          if (typeof jira.WorkflowConfiguration.onSave === 'function') {
+            addResult('✅ WorkflowConfiguration.onSave is available', 'success');
+          } else {
+            addResult('❌ WorkflowConfiguration.onSave is not available', 'error');
+          }
+          
+          // Test onSaveValidation function
+          if (typeof jira.WorkflowConfiguration.onSaveValidation === 'function') {
+            addResult('✅ WorkflowConfiguration.onSaveValidation is available', 'success');
+          } else {
+            addResult('❌ WorkflowConfiguration.onSaveValidation is not available', 'error');
+          }
+        } else {
+          addResult('❌ WorkflowConfiguration object is not available', 'error');
         }
         
-        // Test current issue
-        try {
-          jira.getCurrentIssue(function(issue) {
-            addResult(`✅ Current issue loaded: ${JSON.stringify(issue)}`, 'success');
-          });
-        } catch (error) {
-          addResult(`❌ Error loading current issue: ${error.message}`, 'error');
-        }
-        
+        // Context-specific information
+        addResult('', 'info');
+        addResult('📝 Note: Some functions are only available in specific contexts:', 'info');
+        addResult('- getWorkflowConfiguration: Only available in workflow configuration pages', 'info');
+        addResult('- getCurrentIssue: Only available when viewing an issue', 'info');
+        addResult('- WorkflowConfiguration: Only available in workflow configuration pages', 'info');
+        addResult('', 'info');
+        addResult('🔧 To test the configuration interface:', 'info');
+        addResult('1. Go to Jira Administration → Issues → Workflows', 'info');
+        addResult('2. Edit a workflow and add the validator', 'info');
+        addResult('3. Click the edit (pencil) icon next to the validator', 'info');
+        addResult('4. The configuration page should open with full functionality', 'info');
       });
     }
   </script>

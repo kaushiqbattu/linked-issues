@@ -57,6 +57,11 @@
       color: #c62828; 
       border: 1px solid #ffcdd2; 
     }
+    .status.warning { 
+      background: #fff3e0; 
+      color: #f57c00; 
+      border: 1px solid #ffe0b2; 
+    }
     .help-text { 
       color: #666; 
       font-size: 12px; 
@@ -71,34 +76,55 @@
       font-size: 12px; 
       margin-top: 10px; 
     }
+    .instructions { 
+      background: #e8f5e8; 
+      padding: 15px; 
+      border-radius: 4px; 
+      margin: 20px 0; 
+      border-left: 4px solid #4caf50; 
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>JQL Configuration</h2>
-    <p class="help-text">
-      Configure the JQL query that linked issues must match. 
-      The transition will be allowed if <strong>any</strong> linked issue matches this JQL.
-    </p>
     
-    <div class="input-group">
-      <label for="jql">JQL Query:</label>
-      <input 
-        id="jql" 
-        type="text" 
-        placeholder="e.g. project = SUP and statusCategory = Done"
-        autocomplete="off"
-      >
-      <div id="status" class="status info">Loading configuration...</div>
+    <div id="context-warning" class="status warning" style="display: none;">
+      <strong>⚠️ Configuration Context Required</strong><br>
+      This page must be accessed from within Jira's workflow editor to function properly.
+      <br><br>
+      <strong>To configure the validator:</strong><br>
+      1. Go to Jira Administration → Issues → Workflows<br>
+      2. Edit a workflow and add the "Any linked issue matches JQL" validator<br>
+      3. Click the edit (pencil) icon next to the validator<br>
+      4. This page will open with full functionality
     </div>
     
-    <div class="help-text">
-      <strong>Examples:</strong>
-      <div class="example">
-        project = "SUP"<br>
-        status = "Done"<br>
-        assignee is not EMPTY<br>
-        project = "SUP" AND statusCategory = "Done"
+    <div id="config-form" style="display: none;">
+      <p class="help-text">
+        Configure the JQL query that linked issues must match. 
+        The transition will be allowed if <strong>any</strong> linked issue matches this JQL.
+      </p>
+      
+      <div class="input-group">
+        <label for="jql">JQL Query:</label>
+        <input 
+          id="jql" 
+          type="text" 
+          placeholder="e.g. project = SUP and statusCategory = Done"
+          autocomplete="off"
+        >
+        <div id="status" class="status info">Loading configuration...</div>
+      </div>
+      
+      <div class="help-text">
+        <strong>Examples:</strong>
+        <div class="example">
+          project = "SUP"<br>
+          status = "Done"<br>
+          assignee is not EMPTY<br>
+          project = "SUP" AND statusCategory = "Done"
+        </div>
       </div>
     </div>
   </div>
@@ -108,11 +134,13 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('Page loaded, initializing...');
       
+      const contextWarning = document.getElementById('context-warning');
+      const configForm = document.getElementById('config-form');
+      
       // Check if AP is available
       if (typeof AP === 'undefined') {
         console.error('AP (Atlassian Connect) not available');
-        document.getElementById('status').innerHTML = 
-          '<span class="error">Error: Atlassian Connect not available</span>';
+        contextWarning.style.display = 'block';
         return;
       }
       
@@ -121,6 +149,17 @@
       // Load Jira API
       AP.require(['jira'], function(jira) {
         console.log('Jira API loaded successfully');
+        
+        // Check if we're in the right context
+        if (!jira.WorkflowConfiguration) {
+          console.log('Not in workflow configuration context');
+          contextWarning.style.display = 'block';
+          return;
+        }
+        
+        console.log('In workflow configuration context, showing form');
+        contextWarning.style.display = 'none';
+        configForm.style.display = 'block';
         
         const jqlInput = document.getElementById('jql');
         const statusDiv = document.getElementById('status');
