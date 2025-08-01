@@ -3,7 +3,7 @@
   "name": "Linked Issues Validator",
   "baseUrl": "https://kaushiqbattu.github.io/linked-issues",
   "authentication": {
-    "type": "jwt"
+    "type": "none"
   },
   "scopes": [ "READ", "WRITE", "ADMIN" ],
   "modules": {
