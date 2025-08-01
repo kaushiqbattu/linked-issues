@@ -2,27 +2,97 @@
 <html>
 <head>
   <script src="https://connect-cdn.atl-paas.net/all.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .input-group { margin: 15px 0; }
+    input[type="text"] { 
+      width: 100%; 
+      padding: 8px; 
+      border: 1px solid #ccc; 
+      border-radius: 4px; 
+      font-size: 14px;
+    }
+    .help-text { 
+      color: #666; 
+      font-size: 12px; 
+      margin-top: 5px; 
+    }
+    .error { color: #d32f2f; }
+    .success { color: #388e3c; }
+  </style>
 </head>
 <body>
   <h3>JQL that any linked issue must match</h3>
-  <p style="color: #666; font-size: 12px;">The transition will be allowed if at least one linked issue matches this JQL.</p>
-  <input id="jql" style="width:95%" placeholder="e.g. project = SUP and statusCategory = Done">
+  <p class="help-text">The transition will be allowed if at least one linked issue matches this JQL.</p>
+  
+  <div class="input-group">
+    <label for="jql">JQL Query:</label>
+    <input id="jql" type="text" placeholder="e.g. project = SUP and statusCategory = Done">
+    <div id="status" class="help-text"></div>
+  </div>
 
   <script>
     AP.require(['jira'], function(jira){
-      /* load prev config (edit) */
+      console.log('Jira API loaded successfully');
+      
+      const jqlInput = document.getElementById('jql');
+      const statusDiv = document.getElementById('status');
+      
+      // Load previous configuration
       jira.getWorkflowConfiguration(function(cfg){
-        if (cfg && cfg.jql) document.getElementById('jql').value = cfg.jql;
+        console.log('Loading configuration:', cfg);
+        if (cfg && cfg.jql) {
+          jqlInput.value = cfg.jql;
+          statusDiv.textContent = 'Configuration loaded successfully';
+          statusDiv.className = 'help-text success';
+        } else {
+          statusDiv.textContent = 'No previous configuration found';
+          statusDiv.className = 'help-text';
+        }
       });
-
-      /* save */
+      
+      // Save configuration
       jira.WorkflowConfiguration.onSave(function(){
-        return JSON.stringify({ jql: document.getElementById('jql').value.trim() });
+        const jqlValue = jqlInput.value.trim();
+        console.log('Saving configuration with JQL:', jqlValue);
+        
+        if (!jqlValue) {
+          statusDiv.textContent = 'Error: JQL cannot be empty';
+          statusDiv.className = 'help-text error';
+          return false;
+        }
+        
+        const config = { jql: jqlValue };
+        console.log('Saving config:', config);
+        return JSON.stringify(config);
       });
-
-      /* optional client-side validation */
+      
+      // Client-side validation
       jira.WorkflowConfiguration.onSaveValidation(function(){
-        return document.getElementById('jql').value.trim().length > 0;
+        const jqlValue = jqlInput.value.trim();
+        const isValid = jqlValue.length > 0;
+        
+        if (isValid) {
+          statusDiv.textContent = 'Configuration is valid';
+          statusDiv.className = 'help-text success';
+        } else {
+          statusDiv.textContent = 'Error: JQL cannot be empty';
+          statusDiv.className = 'help-text error';
+        }
+        
+        return isValid;
+      });
+      
+      // Add input event listener for real-time validation
+      jqlInput.addEventListener('input', function() {
+        const jqlValue = this.value.trim();
+        if (jqlValue.length > 0) {
+          statusDiv.textContent = 'JQL looks good';
+          statusDiv.className = 'help-text success';
+        } else {
+          statusDiv.textContent = 'Please enter a JQL query';
+          statusDiv.className = 'help-text';
+        }
       });
     });
   </script>

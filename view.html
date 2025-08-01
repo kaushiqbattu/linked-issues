@@ -1,10 +1,57 @@
-<script src="https://connect-cdn.atl-paas.net/all.js"></script>
-<div id="out"></div>
-<script>
-  AP.require(['jira'], function(jira){
-    jira.getWorkflowConfiguration(function(cfg){
-      document.getElementById('out').innerText =
-        'Validator JQL (any linked issue must match): ' + (cfg && cfg.jql ? cfg.jql : '(not set)');
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://connect-cdn.atl-paas.net/all.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .config-display { 
+      background: #f5f5f5; 
+      padding: 15px; 
+      border-radius: 4px; 
+      margin: 10px 0; 
+    }
+    .jql-value { 
+      font-family: monospace; 
+      background: white; 
+      padding: 8px; 
+      border: 1px solid #ddd; 
+      border-radius: 3px; 
+      margin-top: 5px; 
+    }
+    .no-config { color: #666; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h3>Validator Configuration</h3>
+  <div class="config-display">
+    <div id="out"></div>
+  </div>
+  
+  <script>
+    AP.require(['jira'], function(jira){
+      console.log('View: Jira API loaded successfully');
+      
+      jira.getWorkflowConfiguration(function(cfg){
+        console.log('View: Loading configuration:', cfg);
+        
+        const outDiv = document.getElementById('out');
+        
+        if (cfg && cfg.jql && cfg.jql.trim()) {
+          outDiv.innerHTML = `
+            <strong>JQL Query:</strong><br>
+            <div class="jql-value">${cfg.jql}</div>
+            <p><em>This validator will allow the transition if any linked issue matches the above JQL.</em></p>
+          `;
+        } else {
+          outDiv.innerHTML = `
+            <div class="no-config">
+              <strong>No JQL configured</strong><br>
+              <em>Please configure a JQL query for this validator.</em>
+            </div>
+          `;
+        }
+      });
     });
-  });
-</script>
+  </script>
+</body>
+</html>
