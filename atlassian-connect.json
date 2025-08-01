@@ -1,7 +1,7 @@
 {
     "key": "linked-issues-jql-validator",
     "name": "Linked-issues JQL Validator",
-    "baseUrl": "https://kaushiqbattu.github.io/linked-issues/",          // ← replace with your host
+    "baseUrl": "https://kaushiqbattu.github.io/linked-issues/",        
     "authentication": { "type": "none" },
     "scopes": [ "read:jira-work" ],
     "apiVersion": 1,
@@ -13,13 +13,10 @@
           "description": {
             "value": "Blocks a transition unless every linked issue satisfies a JQL query (set below)."
           },
-          /* -------- main logic – a single Jira expression -------- */
           "expression": "issue.links.every(l => l.linkedIssue.matches(config['jql']))",
-          /* ---------- message shown when expression is false ----- */
           "errorMessage": {
             "expression": "'At least one linked issue does not match JQL: ' + config['jql']"
           },
-          /* ---------- small 3-page config UI ---------------------- */
           "create":  { "url": "/create.html" },
           "edit":    { "url": "/create.html?mode=edit" },
           "view":    { "url": "/view.html" }
