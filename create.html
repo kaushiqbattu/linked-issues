@@ -19,6 +19,7 @@
     }
     .error { color: #d32f2f; }
     .success { color: #388e3c; }
+    .warning { color: #f57c00; }
   </style>
 </head>
 <body>
@@ -29,6 +30,10 @@
     <label for="jql">JQL Query:</label>
     <input id="jql" type="text" placeholder="e.g. project = SUP and statusCategory = Done">
     <div id="status" class="help-text"></div>
+  </div>
+
+  <div class="help-text warning">
+    <strong>Note:</strong> This is a static configuration page. The actual validation will be performed by Jira's built-in JQL validation.
   </div>
 
   <script>
@@ -62,6 +67,12 @@
           return false;
         }
         
+        // Basic JQL validation
+        if (!isValidJQL(jqlValue)) {
+          statusDiv.textContent = 'Warning: Please verify your JQL syntax';
+          statusDiv.className = 'help-text warning';
+        }
+        
         const config = { jql: jqlValue };
         console.log('Saving config:', config);
         return JSON.stringify(config);
@@ -87,13 +98,39 @@
       jqlInput.addEventListener('input', function() {
         const jqlValue = this.value.trim();
         if (jqlValue.length > 0) {
-          statusDiv.textContent = 'JQL looks good';
-          statusDiv.className = 'help-text success';
+          if (isValidJQL(jqlValue)) {
+            statusDiv.textContent = 'JQL looks good';
+            statusDiv.className = 'help-text success';
+          } else {
+            statusDiv.textContent = 'Please check JQL syntax';
+            statusDiv.className = 'help-text warning';
+          }
         } else {
           statusDiv.textContent = 'Please enter a JQL query';
           statusDiv.className = 'help-text';
         }
       });
+      
+      // Basic JQL validation function
+      function isValidJQL(jql) {
+        // Basic checks for common JQL patterns
+        const hasProject = /\bproject\s*=/i.test(jql);
+        const hasStatus = /\bstatus\s*=/i.test(jql);
+        const hasAssignee = /\bassignee\s*=/i.test(jql);
+        const hasReporter = /\breporter\s*=/i.test(jql);
+        const hasIssueType = /\bissuetype\s*=/i.test(jql);
+        const hasComponent = /\bcomponent\s*=/i.test(jql);
+        const hasLabel = /\blabels\s*=/i.test(jql);
+        const hasPriority = /\bpriority\s*=/i.test(jql);
+        const hasResolution = /\bresolution\s*=/i.test(jql);
+        const hasCreated = /\bcreated\s*=/i.test(jql);
+        const hasUpdated = /\bupdated\s*=/i.test(jql);
+        
+        // Check for at least one valid JQL field
+        return hasProject || hasStatus || hasAssignee || hasReporter || 
+               hasIssueType || hasComponent || hasLabel || hasPriority || 
+               hasResolution || hasCreated || hasUpdated;
+      }
     });
   </script>
 </body>

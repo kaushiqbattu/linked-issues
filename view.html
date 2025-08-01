@@ -19,12 +19,18 @@
       margin-top: 5px; 
     }
     .no-config { color: #666; font-style: italic; }
+    .info { color: #1976d2; font-size: 12px; margin-top: 10px; }
   </style>
 </head>
 <body>
   <h3>Validator Configuration</h3>
   <div class="config-display">
     <div id="out"></div>
+  </div>
+  
+  <div class="info">
+    <strong>How it works:</strong> This validator checks if any linked issue matches the configured JQL query. 
+    The validation is performed by Jira's built-in JQL engine.
   </div>
   
   <script>

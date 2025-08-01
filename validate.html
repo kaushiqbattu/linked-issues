@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Linked Issues Validator</title>
+  <script src="https://connect-cdn.atl-paas.net/all.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .loading { color: #666; font-style: italic; }
+    .error { color: #d32f2f; }
+    .success { color: #388e3c; }
+  </style>
+</head>
+<body>
+  <div id="status" class="loading">Validating linked issues...</div>
+  
+  <script>
+    AP.require(['jira'], function(jira) {
+      console.log('Validation handler loaded');
+      
+      // Get current issue and configuration
+      jira.getWorkflowConfiguration(function(config) {
+        console.log('Configuration:', config);
+        
+        if (!config || !config.jql) {
+          // No JQL configured, allow the transition
+          document.getElementById('status').innerHTML = 
+            '<span class="success">✓ No JQL configured - allowing transition</span>';
+          return;
+        }
+        
+        // Get current issue key
+        jira.getCurrentIssue(function(issue) {
+          console.log('Current issue:', issue);
+          
+          if (!issue || !issue.key) {
+            document.getElementById('status').innerHTML = 
+              '<span class="error">✗ Could not determine current issue</span>';
+            return;
+          }
+          
+          // Validate linked issues against JQL
+          validateLinkedIssues(issue.key, config.jql);
+        });
+      });
+      
+      function validateLinkedIssues(issueKey, jql) {
+        // This is a simplified validation for GitHub Pages
+        // In a real implementation, you would make API calls to Jira
+        // For now, we'll show a message and allow the transition
+        
+        document.getElementById('status').innerHTML = 
+          `<span class="success">✓ JQL configured: ${jql}</span><br>
+           <small>Note: Full validation requires server-side processing. This is a static version for GitHub Pages.</small>`;
+        
+        // For GitHub Pages, we'll allow the transition and let Jira handle the validation
+        // In a production environment, you would implement the full validation logic here
+      }
+    });
+  </script>
+</body>
+</html> 

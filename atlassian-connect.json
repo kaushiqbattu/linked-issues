@@ -16,7 +16,7 @@
         "description": {
           "value": "Blocks the transition unless at least one linked issue satisfies the JQL you supply."
         },
-        "url": "/validate", 
+        "url": "/validate.html", 
         "function": "validate-handler",
         "configurationUrl": "/create.html",
         "view": {
