@@ -1,7 +1,7 @@
 {
   "key": "linked-issues-validator",
   "name": "Linked Issues Validator",
-  "baseUrl": "http://localhost:3000",
+  "baseUrl": "https://kaushiqbattu.github.io/linked-issues",
   "authentication": {
     "type": "none"
   },
