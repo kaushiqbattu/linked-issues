@@ -1,26 +1,28 @@
 {
-    "key": "linked-issues-jql-validator",
-    "name": "Linked-issues JQL Validator",
-    "baseUrl": "https://kaushiqbattu.github.io/linked-issues",        
-    "authentication": { "type": "none" },
-    "scopes": [ "read:jira-work" ],
-    "apiVersion": 1,
-    "modules": {
-      "jiraWorkflowValidators": [
-        {
-          "key": "linked-issues-match-jql",
-          "name": { "value": "All linked issues match JQL" },
-          "description": {
-            "value": "Blocks a transition unless every linked issue satisfies a JQL query (set below)."
-          },
-          "expression": "issue.links.every(l => l.linkedIssue.matches(config['jql']))",
-          "errorMessage": {
-            "expression": "'At least one linked issue does not match JQL: ' + config['jql']"
-          },
-          "create":  { "url": "/create.html" },
-          "edit":    { "url": "/create.html?mode=edit" },
-          "view":    { "url": "/view.html" }
+  "key": "linked-issues-validator",
+  "name": "Linked Issues Validator",
+  "baseUrl": "https://kaushiqbattu.github.io/linked-issues",
+  "authentication": {
+    "type": "jwt"
+  },
+  "scopes": [ "READ", "WRITE", "ADMIN" ],
+  "modules": {
+    "jiraWorkflowValidators": [
+      {
+        "key": "linked-issues-match-jql",
+        "name": {
+          "value": "All linked issues match JQL"
+        },
+        "description": {
+          "value": "Blocks the transition unless every linked issue satisfies the JQL you supply."
+        },
+        "url": "/validate", 
+        "function": "validate-handler",
+        "configurationUrl": "/create.html",
+        "view": {
+          "url": "/view.html"
         }
-      ]
-    }
+      }
+    ]
   }
+}
