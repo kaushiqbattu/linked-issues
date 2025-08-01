@@ -1,0 +1,10 @@
+<script src="https://connect-cdn.atl-paas.net/all.js"></script>
+<div id="out"></div>
+<script>
+  AP.require(['jira'], function(jira){
+    jira.getWorkflowConfiguration(function(cfg){
+      document.getElementById('out').innerText =
+        'Validator JQL: ' + (cfg && cfg.jql ? cfg.jql : '(not set)');
+    });
+  });
+</script>
