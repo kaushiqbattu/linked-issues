@@ -1,7 +1,7 @@
 {
     "key": "linked-issues-jql-validator",
     "name": "Linked-issues JQL Validator",
-    "baseUrl": "https://YOURDOMAIN.com",          // ← replace with your host
+    "baseUrl": "https://kaushiqbattu.github.io/linked-issues/",          // ← replace with your host
     "authentication": { "type": "none" },
     "scopes": [ "read:jira-work" ],
     "apiVersion": 1,
