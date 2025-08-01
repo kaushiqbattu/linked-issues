@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jira Connect API Test</title>
+  <script src="https://connect-cdn.atl-paas.net/all.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+    .success { background: #e8f5e8; color: #2e7d32; }
+    .error { background: #ffebee; color: #c62828; }
+    .info { background: #e3f2fd; color: #1976d2; }
+  </style>
+</head>
+<body>
+  <h2>Jira Connect API Test</h2>
+  <div id="results"></div>
+
+  <script>
+    const results = document.getElementById('results');
+    
+    function addResult(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `status ${type}`;
+      div.textContent = message;
+      results.appendChild(div);
+    }
+    
+    addResult('Testing Jira Connect API...', 'info');
+    
+    // Check if AP is available
+    if (typeof AP === 'undefined') {
+      addResult('❌ AP (Atlassian Connect) not available', 'error');
+    } else {
+      addResult('✅ AP (Atlassian Connect) is available', 'success');
+      
+      // Test Jira API
+      AP.require(['jira'], function(jira) {
+        addResult('✅ Jira API loaded successfully', 'success');
+        
+        // Test workflow configuration
+        try {
+          jira.getWorkflowConfiguration(function(cfg) {
+            addResult(`✅ Workflow configuration loaded: ${JSON.stringify(cfg)}`, 'success');
+          });
+        } catch (error) {
+          addResult(`❌ Error loading workflow configuration: ${error.message}`, 'error');
+        }
+        
+        // Test current issue
+        try {
+          jira.getCurrentIssue(function(issue) {
+            addResult(`✅ Current issue loaded: ${JSON.stringify(issue)}`, 'success');
+          });
+        } catch (error) {
+          addResult(`❌ Error loading current issue: ${error.message}`, 'error');
+        }
+        
+      });
+    }
+  </script>
+</body>
+</html> 

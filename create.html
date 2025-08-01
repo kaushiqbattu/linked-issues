@@ -3,134 +3,190 @@
 <head>
   <script src="https://connect-cdn.atl-paas.net/all.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .input-group { margin: 15px 0; }
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      max-width: 600px; 
+      margin: 0 auto; 
+    }
+    .container { 
+      background: #f9f9f9; 
+      padding: 20px; 
+      border-radius: 8px; 
+      border: 1px solid #ddd; 
+    }
+    .input-group { 
+      margin: 20px 0; 
+    }
+    label { 
+      display: block; 
+      font-weight: bold; 
+      margin-bottom: 5px; 
+      color: #333; 
+    }
     input[type="text"] { 
       width: 100%; 
-      padding: 8px; 
-      border: 1px solid #ccc; 
+      padding: 12px; 
+      border: 2px solid #ddd; 
       border-radius: 4px; 
-      font-size: 14px;
+      font-size: 14px; 
+      box-sizing: border-box; 
+    }
+    input[type="text"]:focus { 
+      border-color: #1976d2; 
+      outline: none; 
+    }
+    .status { 
+      margin-top: 10px; 
+      padding: 8px; 
+      border-radius: 4px; 
+      font-size: 12px; 
+    }
+    .status.info { 
+      background: #e3f2fd; 
+      color: #1976d2; 
+      border: 1px solid #bbdefb; 
+    }
+    .status.success { 
+      background: #e8f5e8; 
+      color: #2e7d32; 
+      border: 1px solid #c8e6c9; 
+    }
+    .status.error { 
+      background: #ffebee; 
+      color: #c62828; 
+      border: 1px solid #ffcdd2; 
     }
     .help-text { 
       color: #666; 
       font-size: 12px; 
       margin-top: 5px; 
+      line-height: 1.4; 
     }
-    .error { color: #d32f2f; }
-    .success { color: #388e3c; }
-    .warning { color: #f57c00; }
+    .example { 
+      background: #f5f5f5; 
+      padding: 10px; 
+      border-radius: 4px; 
+      font-family: monospace; 
+      font-size: 12px; 
+      margin-top: 10px; 
+    }
   </style>
 </head>
 <body>
-  <h3>JQL that any linked issue must match</h3>
-  <p class="help-text">The transition will be allowed if at least one linked issue matches this JQL.</p>
-  
-  <div class="input-group">
-    <label for="jql">JQL Query:</label>
-    <input id="jql" type="text" placeholder="e.g. project = SUP and statusCategory = Done">
-    <div id="status" class="help-text"></div>
-  </div>
-
-  <div class="help-text warning">
-    <strong>Note:</strong> This is a static configuration page. The actual validation will be performed by Jira's built-in JQL validation.
+  <div class="container">
+    <h2>JQL Configuration</h2>
+    <p class="help-text">
+      Configure the JQL query that linked issues must match. 
+      The transition will be allowed if <strong>any</strong> linked issue matches this JQL.
+    </p>
+    
+    <div class="input-group">
+      <label for="jql">JQL Query:</label>
+      <input 
+        id="jql" 
+        type="text" 
+        placeholder="e.g. project = SUP and statusCategory = Done"
+        autocomplete="off"
+      >
+      <div id="status" class="status info">Loading configuration...</div>
+    </div>
+    
+    <div class="help-text">
+      <strong>Examples:</strong>
+      <div class="example">
+        project = "SUP"<br>
+        status = "Done"<br>
+        assignee is not EMPTY<br>
+        project = "SUP" AND statusCategory = "Done"
+      </div>
+    </div>
   </div>
 
   <script>
-    AP.require(['jira'], function(jira){
-      console.log('Jira API loaded successfully');
+    // Wait for the page to load
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Page loaded, initializing...');
       
-      const jqlInput = document.getElementById('jql');
-      const statusDiv = document.getElementById('status');
-      
-      // Load previous configuration
-      jira.getWorkflowConfiguration(function(cfg){
-        console.log('Loading configuration:', cfg);
-        if (cfg && cfg.jql) {
-          jqlInput.value = cfg.jql;
-          statusDiv.textContent = 'Configuration loaded successfully';
-          statusDiv.className = 'help-text success';
-        } else {
-          statusDiv.textContent = 'No previous configuration found';
-          statusDiv.className = 'help-text';
-        }
-      });
-      
-      // Save configuration
-      jira.WorkflowConfiguration.onSave(function(){
-        const jqlValue = jqlInput.value.trim();
-        console.log('Saving configuration with JQL:', jqlValue);
-        
-        if (!jqlValue) {
-          statusDiv.textContent = 'Error: JQL cannot be empty';
-          statusDiv.className = 'help-text error';
-          return false;
-        }
-        
-        // Basic JQL validation
-        if (!isValidJQL(jqlValue)) {
-          statusDiv.textContent = 'Warning: Please verify your JQL syntax';
-          statusDiv.className = 'help-text warning';
-        }
-        
-        const config = { jql: jqlValue };
-        console.log('Saving config:', config);
-        return JSON.stringify(config);
-      });
-      
-      // Client-side validation
-      jira.WorkflowConfiguration.onSaveValidation(function(){
-        const jqlValue = jqlInput.value.trim();
-        const isValid = jqlValue.length > 0;
-        
-        if (isValid) {
-          statusDiv.textContent = 'Configuration is valid';
-          statusDiv.className = 'help-text success';
-        } else {
-          statusDiv.textContent = 'Error: JQL cannot be empty';
-          statusDiv.className = 'help-text error';
-        }
-        
-        return isValid;
-      });
-      
-      // Add input event listener for real-time validation
-      jqlInput.addEventListener('input', function() {
-        const jqlValue = this.value.trim();
-        if (jqlValue.length > 0) {
-          if (isValidJQL(jqlValue)) {
-            statusDiv.textContent = 'JQL looks good';
-            statusDiv.className = 'help-text success';
-          } else {
-            statusDiv.textContent = 'Please check JQL syntax';
-            statusDiv.className = 'help-text warning';
-          }
-        } else {
-          statusDiv.textContent = 'Please enter a JQL query';
-          statusDiv.className = 'help-text';
-        }
-      });
-      
-      // Basic JQL validation function
-      function isValidJQL(jql) {
-        // Basic checks for common JQL patterns
-        const hasProject = /\bproject\s*=/i.test(jql);
-        const hasStatus = /\bstatus\s*=/i.test(jql);
-        const hasAssignee = /\bassignee\s*=/i.test(jql);
-        const hasReporter = /\breporter\s*=/i.test(jql);
-        const hasIssueType = /\bissuetype\s*=/i.test(jql);
-        const hasComponent = /\bcomponent\s*=/i.test(jql);
-        const hasLabel = /\blabels\s*=/i.test(jql);
-        const hasPriority = /\bpriority\s*=/i.test(jql);
-        const hasResolution = /\bresolution\s*=/i.test(jql);
-        const hasCreated = /\bcreated\s*=/i.test(jql);
-        const hasUpdated = /\bupdated\s*=/i.test(jql);
-        
-        // Check for at least one valid JQL field
-        return hasProject || hasStatus || hasAssignee || hasReporter || 
-               hasIssueType || hasComponent || hasLabel || hasPriority || 
-               hasResolution || hasCreated || hasUpdated;
+      // Check if AP is available
+      if (typeof AP === 'undefined') {
+        console.error('AP (Atlassian Connect) not available');
+        document.getElementById('status').innerHTML = 
+          '<span class="error">Error: Atlassian Connect not available</span>';
+        return;
       }
+      
+      console.log('AP available, loading Jira API...');
+      
+      // Load Jira API
+      AP.require(['jira'], function(jira) {
+        console.log('Jira API loaded successfully');
+        
+        const jqlInput = document.getElementById('jql');
+        const statusDiv = document.getElementById('status');
+        
+        // Load previous configuration
+        console.log('Loading workflow configuration...');
+        jira.getWorkflowConfiguration(function(cfg) {
+          console.log('Configuration loaded:', cfg);
+          
+          if (cfg && cfg.jql && cfg.jql.trim()) {
+            jqlInput.value = cfg.jql;
+            statusDiv.innerHTML = '<span class="success">✓ Configuration loaded successfully</span>';
+            console.log('Previous JQL loaded:', cfg.jql);
+          } else {
+            statusDiv.innerHTML = '<span class="info">No previous configuration found</span>';
+            console.log('No previous configuration');
+          }
+        });
+        
+        // Save configuration
+        jira.WorkflowConfiguration.onSave(function() {
+          const jqlValue = jqlInput.value.trim();
+          console.log('Saving configuration with JQL:', jqlValue);
+          
+          if (!jqlValue) {
+            statusDiv.innerHTML = '<span class="error">✗ Error: JQL cannot be empty</span>';
+            return false;
+          }
+          
+          const config = { jql: jqlValue };
+          console.log('Saving config:', config);
+          statusDiv.innerHTML = '<span class="success">✓ Configuration saved</span>';
+          return JSON.stringify(config);
+        });
+        
+        // Client-side validation
+        jira.WorkflowConfiguration.onSaveValidation(function() {
+          const jqlValue = jqlInput.value.trim();
+          const isValid = jqlValue.length > 0;
+          
+          console.log('Validating configuration, isValid:', isValid);
+          
+          if (isValid) {
+            statusDiv.innerHTML = '<span class="success">✓ Configuration is valid</span>';
+          } else {
+            statusDiv.innerHTML = '<span class="error">✗ Error: JQL cannot be empty</span>';
+          }
+          
+          return isValid;
+        });
+        
+        // Real-time validation
+        jqlInput.addEventListener('input', function() {
+          const jqlValue = this.value.trim();
+          console.log('JQL input changed:', jqlValue);
+          
+          if (jqlValue.length > 0) {
+            statusDiv.innerHTML = '<span class="success">✓ JQL looks good</span>';
+          } else {
+            statusDiv.innerHTML = '<span class="info">Please enter a JQL query</span>';
+          }
+        });
+        
+        // Focus on input for better UX
+        jqlInput.focus();
+      });
     });
   </script>
 </body>
